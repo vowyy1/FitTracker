@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTracker - Edzéskövető</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js (Statisztika) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .app-background {
+            background-color: #edf4f8;
+            background-image:
+                linear-gradient(rgba(30, 64, 87, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 64, 87, 0.035) 1px, transparent 1px),
+                linear-gradient(140deg, #f8fafc 0%, #eaf3f8 55%, #dce8f0 100%);
+            background-size: 28px 28px, 28px 28px, 100% 100%;
+            background-attachment: fixed;
+        }
+
+        .panel-surface {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-color: #d6e2eb;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+        }
+
+        .welcome-surface {
+            background: linear-gradient(110deg, #ffffff 15%, #eff8fd 100%);
+            border-left: 4px solid #38bdf8;
+        }
+    </style>
+</head>
+<body class="app-background font-sans text-gray-950">
+
+    <!-- Navigáció -->
+    <nav class="bg-sky-600 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-2xl font-bold italic tracking-wide">FitTracker</h1>
+        <div class="space-x-4 font-semibold">
+            <a href="#activities" class="hover:underline">Sportágak</a>
+            <a href="#planner" class="hover:underline">Edzéstervező</a>
+            <a href="#stats" class="hover:underline">Statisztikák</a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section class="lg:col-span-3 panel-surface welcome-surface p-6 rounded-xl border">
+            <h2 class="text-2xl font-bold">Üdvözlünk újra, Patrik!</h2>
+        </section>
+
+        <section id="activities" class="lg:col-span-3 space-y-3">
+            <h2 class="text-lg font-bold">Sportágak</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <article class="panel-surface p-5 rounded-xl border">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Futás</h3>
+                        <span class="text-2xl" aria-hidden="true">🏃</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-3">Heti táv</p>
+                    <p class="text-xl font-bold">24.5 / 30.0 km</p>
+                </article>
+                <article class="panel-surface p-5 rounded-xl border">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Biciklizés</h3>
+                        <span class="text-2xl" aria-hidden="true">🚴</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-3">Heti táv</p>
+                    <p class="text-xl font-bold">45.0 / 50.0 km</p>
+                </article>
+                <article class="panel-surface p-5 rounded-xl border">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Séta</h3>
+                        <span class="text-2xl" aria-hidden="true">🚶</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-3">Heti aktivitás</p>
+                    <p class="text-xl font-bold">Még nincs rögzített adat</p>
+                </article>
+            </div>
+        </section>
+        
+        <!-- Bal sáv: Heti célok & Edzéstervező -->
+        <div class="space-y-6">
+            <section class="panel-surface p-5 rounded-xl border">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold">Mai időjárás</h2>
+                        <p id="weatherDate" class="text-sm text-gray-500">Püspökladány</p>
+                    </div>
+                    <span id="weatherIcon" class="text-3xl" aria-hidden="true">⛅</span>
+                </div>
+                <p id="weatherCondition" class="font-semibold mt-3">Előrejelzés betöltése...</p>
+                <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Hőmérséklet</p>
+                        <p id="weatherTemperature" class="font-bold">-- / --</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Eső esélye</p>
+                        <p id="weatherRain" class="font-bold">--</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Max. szél</p>
+                        <p id="weatherWind" class="font-bold">--</p>
+                    </div>
+                </div>
+                <p id="weatherError" class="hidden text-sm text-gray-600 mt-3">Az előrejelzés most nem érhető el.</p>
+            </section>
+
+            <!-- Heti célok -->
+            <div class="panel-surface p-5 rounded-xl border">
+                <h2 class="text-lg font-bold mb-3">Heti Célok</h2>
+                <p class="text-sm text-gray-600 mb-1">Futás: 24.5 / 30.0 km</p>
+                <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
+                    <div class="bg-sky-500 h-3 rounded-full" style="width: 81%"></div>
+                </div>
+                <p class="text-sm text-gray-600 mb-1">Biciklizés: 45.0 / 50.0 km</p>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div class="bg-sky-400 h-3 rounded-full" style="width: 90%"></div>
+                </div>
+            </div>
+
+            <!-- Edzéstervező Form -->
+            <div id="planner" class="panel-surface p-5 rounded-xl border">
+                <h2 class="text-lg font-bold mb-3">Edzés Tervezése</h2>
+                <form id="planForm" class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium">Sportág</label>
+                        <select id="planType" class="w-full border rounded p-2 text-sm">
+                            <option value="Futás">Futás</option>
+                            <option value="Biciklizés">Biciklizés</option>
+                            <option value="Séta">Séta</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Dátum</label>
+                        <input type="date" id="planDate" class="w-full border rounded p-2 text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Tervezett Táv (km)</label>
+                        <input type="number" id="planDist" step="0.1" class="w-full border rounded p-2 text-sm" required>
+                    </div>
+                    <button type="submit" class="w-full bg-sky-600 text-white py-2 rounded-lg font-semibold hover:bg-sky-700">Terv Mentése</button>
+                </form>
+            </div>
+
+            <!-- Tervezett edzések listája -->
+            <div class="panel-surface p-5 rounded-xl border">
+                <h2 class="text-lg font-bold mb-3">Közelgő Edzések</h2>
+                <ul id="planList" class="space-y-2 text-sm text-gray-700">
+                    <li class="p-2 bg-gray-50 rounded border flex justify-between">
+                        <span>🏃 Futás (2026-11-04)</span>
+                        <span class="font-bold">10 km</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Középső sáv: Legutóbbi Aktivitás (Térkép & Grafikon) -->
+        <div id="stats" class="lg:col-span-2 space-y-6">
+            <div class="panel-surface p-5 rounded-xl border space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold">Délutáni Futás</h2>
+                        <p class="text-sm text-gray-500">2024. május 3. • Püspökladány</p>
+                    </div>
+                    <span class="bg-sky-100 text-sky-800 font-semibold text-xs px-3 py-1 rounded-full">Futás</span>
+                </div>
+
+                <!-- Futás térképes szemléltetése -->
+                <div class="w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
+                    <img src="Képernyőkép 2026-11-02 143337.png" alt="A futás útvonala és részidői Püspökladány térképén" class="block w-full h-auto">
+                </div>
+
+                <!-- Összegző mutatók -->
+                <div class="grid grid-cols-3 gap-4 text-center py-2 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Távolság</p>
+                        <p class="text-xl font-bold text-gray-800">4.83 km</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Időtartam</p>
+                        <p class="text-xl font-bold text-gray-800">34:39</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Átlagtempó</p>
+                        <p class="text-xl font-bold text-gray-800">3:35 /km</p>
+                    </div>
+                </div>
+
+                <!-- Tempó és Magasság diagram -->
+                <div>
+                    <h3 class="text-sm font-semibold mb-2">Tempó elemzés</h3>
+                    <canvas id="paceChart" class="w-full h-36"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        async function loadWeather() {
+            const weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=47.3167&longitude=21.1167&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=Europe%2FBudapest&forecast_days=1';
+
+            try {
+                const response = await fetch(weatherUrl);
+                if (!response.ok) throw new Error('Weather request failed');
+
+                const daily = (await response.json()).daily;
+                const code = daily.weather_code[0];
+                const weatherLabels = {
+                    0: 'Derült', 1: 'Többnyire derült', 2: 'Változóan felhős', 3: 'Borult',
+                    45: 'Ködös', 48: 'Zúzmarás köd', 51: 'Enyhe szitálás', 53: 'Szitálás',
+                    55: 'Erős szitálás', 56: 'Ónos szitálás', 57: 'Erős ónos szitálás',
+                    61: 'Enyhe eső', 63: 'Eső', 65: 'Erős eső', 66: 'Ónos eső', 67: 'Erős ónos eső',
+                    71: 'Enyhe havazás', 73: 'Havazás', 75: 'Erős havazás', 77: 'Hószemcsék',
+                    80: 'Enyhe zápor', 81: 'Zápor', 82: 'Heves zápor', 85: 'Hózápor', 86: 'Erős hózápor',
+                    95: 'Zivatar', 96: 'Zivatar jégesővel', 99: 'Erős zivatar jégesővel'
+                };
+
+                document.getElementById('weatherDate').textContent = `Püspökladány • ${new Intl.DateTimeFormat('hu-HU', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())}`;
+                document.getElementById('weatherCondition').textContent = weatherLabels[code] || 'Változó időjárás';
+                document.getElementById('weatherTemperature').textContent = `${Math.round(daily.temperature_2m_min[0])}° / ${Math.round(daily.temperature_2m_max[0])}°C`;
+                document.getElementById('weatherRain').textContent = `${daily.precipitation_probability_max[0] ?? '--'}%`;
+                document.getElementById('weatherWind').textContent = `${Math.round(daily.wind_speed_10m_max[0])} km/h`;
+                document.getElementById('weatherIcon').textContent = code === 0 ? '☀️' : code < 3 ? '⛅' : code < 45 ? '☁️' : code >= 95 ? '⛈️' : code >= 71 ? '❄️' : '🌧️';
+            } catch {
+                document.getElementById('weatherCondition').textContent = 'Nem sikerült betölteni az előrejelzést.';
+                document.getElementById('weatherError').classList.remove('hidden');
+            }
+        }
+
+        loadWeather();
+
+        const formatPace = (value) => {
+            const totalSeconds = Math.round(Number(value) * 60);
+            return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`;
+        };
+
+        // Chart.js Tempó Grafikon
+        const ctx = document.getElementById('paceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['1. km', '2. km', '3. km', '4. km', '0,83 km'],
+                datasets: [{
+                    label: 'Tempó (perc/km)',
+                    data: [10 + 50 / 60, 10 + 39 / 60, 16 + 46 / 60, 17 + 12 / 60, 12 + 16 / 60],
+                    borderColor: '#0284c7',
+                    backgroundColor: 'rgba(2, 132, 199, 0.12)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `Tempó: ${formatPace(context.parsed.y)} /km`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (value) => formatPace(value)
+                        }
+                    }
+                }
+            }
+        });
+
+        // Edzéstervező form kezelése
+        document.getElementById('planForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const type = document.getElementById('planType').value;
+            const date = document.getElementById('planDate').value;
+            const dist = document.getElementById('planDist').value;
+
+            const icon = type === 'Futás' ? '🏃' : type === 'Biciklizés' ? '🚴' : '🚶';
+            const li = document.createElement('li');
+            li.className = 'p-2 bg-gray-50 rounded border flex justify-between';
+            li.innerHTML = `<span>${icon} ${type} (${date})</span><span class="font-bold">${dist} km</span>`;
+            
+            document.getElementById('planList').appendChild(li);
+            e.target.reset();
+        });
+    </script>
+</body>
+</html>
